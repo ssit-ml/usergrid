@@ -19,6 +19,7 @@ package org.apache.usergrid.persistence.index.impl;
 
 
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -65,6 +66,8 @@ public class EsIndexProducerImpl implements IndexProducer {
 
     private AtomicLong inFlight = new AtomicLong();
 
+    public static Semaphore ES_MAX_THREAD_COUNT;
+
 
     @Inject
     public EsIndexProducerImpl(final IndexFig config, final EsProvider provider,
@@ -82,6 +85,11 @@ public class EsIndexProducerImpl implements IndexProducer {
         this.failureMonitor = new FailureMonitorImpl(config, provider);
         this.client = provider.getClient();
         this.indexFig = indexFig;
+
+        if (ES_MAX_THREAD_COUNT == null) {//该类是单例模式,加个空判断避免特殊情况即可
+            System.out.println("初始化es sendRequest的最大并发数量:" + indexFig.getSendRequestMaxThreadCount());
+            ES_MAX_THREAD_COUNT = new Semaphore(indexFig.getSendRequestMaxThreadCount());
+        }
 
 
         //batch up sets of some size and send them in batch
@@ -185,6 +193,13 @@ public class EsIndexProducerImpl implements IndexProducer {
             return;
         }
 
+        try {
+            //这里控制并发数,避免把es跑出错 by qiongwei.cai 2020.04.08
+            ES_MAX_THREAD_COUNT.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("sendRequest获取运行资格失败", e);
+        }
+
         final BulkResponse responses;
 
 
@@ -236,5 +251,6 @@ public class EsIndexProducerImpl implements IndexProducer {
             throw new RuntimeException(
                 "Error during processing of bulk index operations one of the responses failed. \n" + errorString);
         }
+        ES_MAX_THREAD_COUNT.release();
     }
 }

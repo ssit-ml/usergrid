@@ -74,6 +74,7 @@ public interface IndexFig extends GuicyFig {
 
     String DIRECT_QUERY_MAX_ITEMS = "direct.query.max.items";
 
+    String SEND_REQUEST_MAX_THREAD_SIZE = "elasticsearch.send.request.max.thread.size";
 
 
 
@@ -173,7 +174,7 @@ public interface IndexFig extends GuicyFig {
     /**
      * The batch size to use when sending batched index write requests to Elasticsearch.
      */
-    @Default( "1000" )
+    @Default( "2" )
     @Key( INDEX_BATCH_SIZE )
     int getIndexBatchSize();
 
@@ -244,4 +245,11 @@ public interface IndexFig extends GuicyFig {
     @Default("1000")
     @Key( DIRECT_QUERY_MAX_ITEMS )
     int directQueryMaxItems();
+
+    /**
+     * 设置sendRequest到es时,最大的并发数
+     */
+    @Default( "10" )
+    @Key(  SEND_REQUEST_MAX_THREAD_SIZE )
+    int getSendRequestMaxThreadCount();
 }
