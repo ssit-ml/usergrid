@@ -18,10 +18,14 @@
 package org.apache.usergrid.persistence.index.impl;
 
 
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import org.apache.usergrid.persistence.core.metrics.MetricsFactory;
+import org.apache.usergrid.persistence.index.IndexFig;
 import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -30,17 +34,12 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.rest.RestStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.usergrid.persistence.core.metrics.MetricsFactory;
-import org.apache.usergrid.persistence.index.IndexFig;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Timer;
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 import rx.Observable;
+
+import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -59,8 +58,9 @@ public class EsIndexProducerImpl implements IndexProducer {
     private final Histogram roundtripTimer;
     private final Timer indexTimer;
 
-
     private AtomicLong inFlight = new AtomicLong();
+
+    public static Semaphore ES_MAX_THREAD_COUNT;
 
 
     @Inject
@@ -81,6 +81,9 @@ public class EsIndexProducerImpl implements IndexProducer {
         this.client = provider.getClient();
         this.indexFig = indexFig;
 
+        if (ES_MAX_THREAD_COUNT == null) {//该类是单例模式,加个空判断避免特殊情况即可
+            ES_MAX_THREAD_COUNT = new Semaphore(indexFig.getSendRequestMaxThreadCount());
+        }
 
         //batch up sets of some size and send them in batch
 
@@ -162,11 +165,17 @@ public class EsIndexProducerImpl implements IndexProducer {
         return bulkRequest;
     }
 
-
     /**
      * send bulk request
      */
-    private void sendRequest( BulkRequestBuilder bulkRequest ) {
+    private void sendRequest(BulkRequestBuilder bulkRequest) {
+        try {
+            //这里控制并发数,避免把es跑出错 by qiongwei.cai 2020.04.08
+            ES_MAX_THREAD_COUNT.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("sendRequest获取运行资格失败", e);
+        }
+
         //nothing to do, we haven't added anything to the index
         if ( bulkRequest.numberOfActions() == 0 ) {
             return;
@@ -223,5 +232,6 @@ public class EsIndexProducerImpl implements IndexProducer {
             throw new RuntimeException(
                 "Error during processing of bulk index operations one of the responses failed. \n" + errorString);
         }
+        ES_MAX_THREAD_COUNT.release();
     }
 }

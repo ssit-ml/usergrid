@@ -50,6 +50,8 @@ public interface IndexFig extends GuicyFig {
 
     String INDEX_BATCH_SIZE = "elasticsearch.batch_size";
 
+    String SEND_REQUEST_MAX_THREAD_SIZE = "elasticsearch.send.request.max.thread.size";
+
     String INDEX_WRITE_CONSISTENCY_LEVEL = "elasticsearch.write_consistency_level";
 
     String INDEX_FLUSH_WORKER_COUNT = "index.flush.workers";
@@ -164,9 +166,16 @@ public interface IndexFig extends GuicyFig {
     /**
      * The batch size to use when sending batched index write requests to Elasticsearch.
      */
-    @Default( "1000" )
+    @Default( "2" )
     @Key( INDEX_BATCH_SIZE )
     int getIndexBatchSize();
+
+    /**
+     * 设置sendRequest到es时,最大的并发数
+     */
+    @Default( "10" )
+    @Key(  SEND_REQUEST_MAX_THREAD_SIZE )
+    int getSendRequestMaxThreadCount();
 
     /**
      * The write consistency level for writing into the Elasticsearch index.  The
