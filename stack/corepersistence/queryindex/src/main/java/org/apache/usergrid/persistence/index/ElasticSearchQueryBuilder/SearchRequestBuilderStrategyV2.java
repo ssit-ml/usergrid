@@ -54,8 +54,10 @@ public class SearchRequestBuilderStrategyV2 {
     }
 
     public SearchRequestBuilder getBuilder(){
+        //qiongwei.cai 2020.04.16 加入 .setPreference("_local") 配置es分片查询方式
+
         SearchRequestBuilder srb =
-            esProvider.getClient().prepareSearch( alias.getReadAlias() ).setTypes( IndexingUtils.ES_ENTITY_TYPE ).setSearchType(
+            esProvider.getClient().prepareSearch( alias.getReadAlias() ).setPreference("_local").setTypes( IndexingUtils.ES_ENTITY_TYPE ).setSearchType(
                 SearchType.QUERY_THEN_FETCH);
 
 

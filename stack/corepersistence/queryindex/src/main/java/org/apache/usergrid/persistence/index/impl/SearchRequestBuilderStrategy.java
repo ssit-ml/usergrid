@@ -84,8 +84,9 @@ public class SearchRequestBuilderStrategy {
         Preconditions
             .checkArgument( limit <= EntityIndex.MAX_LIMIT, "limit is greater than max " + EntityIndex.MAX_LIMIT );
 
+        //qiongwei.cai 2020.04.16 加入 .setPreference("_local") 配置es分片查询方式
         SearchRequestBuilder srb =
-            esProvider.getClient().prepareSearch( alias.getReadAlias() ).setTypes( IndexingUtils.ES_ENTITY_TYPE )
+            esProvider.getClient().prepareSearch( alias.getReadAlias() ).setPreference("_local").setTypes( IndexingUtils.ES_ENTITY_TYPE )
                       .setSearchType( SearchType.QUERY_THEN_FETCH );
 
 

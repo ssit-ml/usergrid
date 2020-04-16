@@ -122,7 +122,8 @@ public class IndexRefreshCommandImpl implements IndexRefreshCommand {
                 try {
                     IndexRefreshCommandInfo info = null;
                     for(int i = 0; i<indexFig.maxRefreshSearches();i++) {
-                        final SearchRequestBuilder builder = esProvider.getClient().prepareSearch(alias.getReadAlias())
+                        //qiongwei.cai 2020.04.16 加入 .setPreference("_local") 配置es分片查询方式
+                        final SearchRequestBuilder builder = esProvider.getClient().prepareSearch(alias.getReadAlias()).setPreference("_local")
                             .setTypes(IndexingUtils.ES_ENTITY_TYPE)
                             .setPostFilter(FilterBuilders
                                 .termFilter(IndexingUtils.ENTITY_ID_FIELDNAME,
