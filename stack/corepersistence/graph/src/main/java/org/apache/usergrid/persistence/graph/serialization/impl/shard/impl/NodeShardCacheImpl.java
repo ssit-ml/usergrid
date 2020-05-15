@@ -200,10 +200,10 @@ public class NodeShardCacheImpl implements NodeShardCache {
                 //wait for a trip to cassandra
                 .refreshAfterWrite( graphFig.getShardCacheTimeout(), TimeUnit.MILLISECONDS )
 
-                        //set our weight function, since not all shards are equal
-                .maximumWeight(MAX_WEIGHT_PER_ELEMENT * graphFig.getShardCacheSize() ).weigher( new ShardWeigher() )
+                // bugfix by jingyi
+                .maximumSize(graphFig.getShardCacheSize())
 
-                        //set our shard loader
+                //set our shard loader
                 .build( new ShardCacheLoader() );
     }
 
