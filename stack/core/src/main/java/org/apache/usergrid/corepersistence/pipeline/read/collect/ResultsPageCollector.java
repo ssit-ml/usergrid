@@ -20,19 +20,20 @@
 package org.apache.usergrid.corepersistence.pipeline.read.collect;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.base.Optional;
 import org.apache.usergrid.corepersistence.pipeline.PipelineContext;
 import org.apache.usergrid.corepersistence.pipeline.cursor.ResponseCursor;
 import org.apache.usergrid.corepersistence.pipeline.read.AbstractFilter;
 import org.apache.usergrid.corepersistence.pipeline.read.EdgePath;
 import org.apache.usergrid.corepersistence.pipeline.read.FilterResult;
 import org.apache.usergrid.corepersistence.pipeline.read.ResultsPage;
-
-import com.google.common.base.Optional;
-
+import org.apache.usergrid.corepersistence.results.EntityQueryExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -41,10 +42,10 @@ import rx.Observable;
  *
  *
  *
- * @param T the type of element to be collected
  */
 public class ResultsPageCollector<T> extends AbstractFilter<FilterResult<T>, ResultsPage<T>> {
 
+    private static final Logger log = LoggerFactory.getLogger( ResultsPageCollector.class );
 
     protected PipelineContext pipelineContext;
 
@@ -53,7 +54,6 @@ public class ResultsPageCollector<T> extends AbstractFilter<FilterResult<T>, Res
     public void setContext( final PipelineContext pipelineContext ) {
         this.pipelineContext = pipelineContext;
     }
-
 
 
     @Override
@@ -66,13 +66,19 @@ public class ResultsPageCollector<T> extends AbstractFilter<FilterResult<T>, Res
             .flatMap( buffer
                 -> Observable
                     .from( buffer )
-                    .collect(() -> new ResultsPageWithCursorCollector( limit ), ( collector, element ) -> collector.add( element ) )
+                    .collect(() -> new ResultsPageWithCursorCollector( limit,
+                            ((FilterResult) buffer.get(0)).getTotalCount() ),
+                        ( collector, element ) -> collector.add( element ) )
             )
-            .map( resultsPageCollector ->
-                new ResultsPage(
-                    resultsPageCollector.results,
-                    new ResponseCursor( resultsPageCollector.lastPath ), pipelineContext.getLimit()
-                )
+            .map( resultsPageCollector -> {
+                //log.error("AAAAAAAAAAAAAAAAAAAAAAAA5:" + resultsPageCollector.getTotalCount()+ " tid:"+ Thread
+                // .currentThread().getId());
+                    return new ResultsPage(
+                        resultsPageCollector.results,
+                        new ResponseCursor(resultsPageCollector.lastPath, resultsPageCollector.getTotalCount()), pipelineContext.getLimit(),
+                        resultsPageCollector.getTotalCount()
+                    );
+                }
             );
     }
 
@@ -82,6 +88,15 @@ public class ResultsPageCollector<T> extends AbstractFilter<FilterResult<T>, Res
      */
     private class ResultsPageWithCursorCollector {
 
+        private long totalCount;
+
+        public long getTotalCount() {
+            return totalCount;
+        }
+
+        public void setTotalCount(long totalCount) {
+            this.totalCount = totalCount;
+        }
 
         private final List<T> results;
 
@@ -90,6 +105,11 @@ public class ResultsPageCollector<T> extends AbstractFilter<FilterResult<T>, Res
 
         private ResultsPageWithCursorCollector( final int limit ) {
             this.results = new ArrayList<>( limit );
+        }
+
+        private ResultsPageWithCursorCollector( final int limit,final long totalCount ) {
+            this.results = new ArrayList<>( limit );
+            this.totalCount = totalCount;
         }
 
 

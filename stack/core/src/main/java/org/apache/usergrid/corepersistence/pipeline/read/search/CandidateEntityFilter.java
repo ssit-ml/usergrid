@@ -20,15 +20,10 @@
 package org.apache.usergrid.corepersistence.pipeline.read.search;
 
 
-import java.util.*;
-
+import com.fasterxml.uuid.UUIDComparator;
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
 import org.apache.usergrid.corepersistence.index.IndexLocationStrategyFactory;
-import org.apache.usergrid.persistence.index.*;
-import org.apache.usergrid.persistence.index.impl.IndexProducer;
-import org.apache.usergrid.persistence.model.field.Field;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.usergrid.corepersistence.pipeline.read.AbstractFilter;
 import org.apache.usergrid.corepersistence.pipeline.read.EdgePath;
 import org.apache.usergrid.corepersistence.pipeline.read.FilterResult;
@@ -37,14 +32,17 @@ import org.apache.usergrid.persistence.collection.EntityCollectionManagerFactory
 import org.apache.usergrid.persistence.collection.EntitySet;
 import org.apache.usergrid.persistence.collection.MvccEntity;
 import org.apache.usergrid.persistence.core.scope.ApplicationScope;
+import org.apache.usergrid.persistence.index.*;
+import org.apache.usergrid.persistence.index.impl.IndexProducer;
 import org.apache.usergrid.persistence.model.entity.Entity;
 import org.apache.usergrid.persistence.model.entity.Id;
-
-import com.fasterxml.uuid.UUIDComparator;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-
+import org.apache.usergrid.persistence.model.entity.SimpleId;
+import org.apache.usergrid.persistence.model.field.Field;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
+
+import java.util.*;
 
 
 /**
@@ -97,18 +95,30 @@ public class CandidateEntityFilter extends AbstractFilter<FilterResult<Candidate
 
             //load them
             .flatMap( candidateResults -> {
+                final long totalCount = candidateResults.size() > 0 ? candidateResults.get(0).getTotalCount() : 0;
 
                 //flatten toa list of ids to load
                 final Observable<List<Candidate>> candidates =
                     Observable.from(candidateResults)
                         .map(filterResultCandidate -> filterResultCandidate.getValue()).toList();
                 //load the ids
+
                 final Observable<FilterResult<Entity>> entitySetObservable =
                     candidates.flatMap(candidatesList -> {
                         Collection<SelectFieldMapping> mappings = candidatesList.get(0).getFields();
                         Observable<EntitySet> entitySets = Observable.from(candidatesList)
                             .map(candidateEntry -> candidateEntry.getCandidateResult().getId()).toList()
-                            .flatMap(idList -> entityCollectionManager.load(idList));
+                            .flatMap(idList -> {
+                                if (idList != null && idList instanceof ArrayList && idList.size() > 0) {
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        Id id = idList.get(i);
+                                        if (id != null && id instanceof SimpleId) {
+                                            ((SimpleId) id).setTotalCount(totalCount);
+                                        }
+                                    }
+                                }
+                                return entityCollectionManager.load(idList);
+                            });
                         //now we have a collection, validate our canidate set is correct.
                         return entitySets.map(
                             entitySet -> new EntityVerifier(
@@ -129,6 +139,7 @@ public class CandidateEntityFilter extends AbstractFilter<FilterResult<Candidate
                                         }).toBlocking().last();
                                     entity.setFieldMap(fieldMap);
                                 }
+                                entityFilterResult.setTotalCount(totalCount);
                                 return entityFilterResult;
                             });
                     });

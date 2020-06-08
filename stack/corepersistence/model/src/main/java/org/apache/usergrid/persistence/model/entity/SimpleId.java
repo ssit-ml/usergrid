@@ -34,6 +34,16 @@ import com.google.common.base.Preconditions;
 public class SimpleId implements Id, Serializable {
 
 
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
+
     private UUID uuid;
     private String type;
 

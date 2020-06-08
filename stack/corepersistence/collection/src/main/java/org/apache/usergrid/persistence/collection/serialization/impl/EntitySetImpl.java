@@ -18,16 +18,26 @@ package org.apache.usergrid.persistence.collection.serialization.impl;/*
  */
 
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.usergrid.persistence.collection.EntitySet;
 import org.apache.usergrid.persistence.collection.MvccEntity;
 import org.apache.usergrid.persistence.model.entity.Id;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class EntitySetImpl implements EntitySet {
+
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
 
 
     private final Map<Id, MvccEntity> entities;

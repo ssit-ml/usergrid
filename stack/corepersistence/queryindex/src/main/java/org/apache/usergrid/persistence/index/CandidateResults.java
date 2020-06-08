@@ -35,6 +35,16 @@ public class CandidateResults implements Iterable<CandidateResult> {
 
     private Optional<Integer> offset = null;
 
+    //qiongwei.cai 设置totalCount
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
 
     private final List<CandidateResult> candidates;
     private final Collection<SelectFieldMapping> getFieldMappings;

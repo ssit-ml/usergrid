@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.usergrid.corepersistence.pipeline.read.ResultsPage;
+import org.apache.usergrid.corepersistence.pipeline.read.search.AbstractElasticSearchFilter;
 import org.apache.usergrid.corepersistence.util.CpEntityMapUtils;
 import org.apache.usergrid.persistence.EntityFactory;
 import org.apache.usergrid.persistence.Results;
@@ -33,6 +34,8 @@ import org.apache.usergrid.persistence.model.entity.Id;
 
 import com.google.common.base.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 
@@ -47,6 +50,7 @@ public abstract class EntityQueryExecutor extends ObservableQueryExecutor<Entity
         super( startCursor );
     }
 
+    //private static final Logger log = LoggerFactory.getLogger( EntityQueryExecutor.class );
 
     @Override
     protected Results createResults( final ResultsPage resultsPage ) {
@@ -60,6 +64,9 @@ public abstract class EntityQueryExecutor extends ObservableQueryExecutor<Entity
         }
 
         final Results results = Results.fromEntities( resultsEntities );
+        //log.error("AAAAAAAAAAAAAAAAAAAAAAAA3:" + resultsPage.getTotalCount()+ " tid:"+ " tid:"+ Thread
+        // .currentThread().getId());
+        results.setTotalCount(resultsPage.getTotalCount());
 
         return results;
     }

@@ -17,41 +17,15 @@
 package org.apache.usergrid.rest.applications;
 
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.usergrid.management.OrganizationConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.jersey.api.json.JSONWithPadding;
+import com.sun.jersey.multipart.BodyPart;
+import com.sun.jersey.multipart.BodyPartEntity;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
 import org.apache.commons.lang.StringUtils;
-
+import org.apache.usergrid.corepersistence.pipeline.read.collect.ResultsPageCollector;
+import org.apache.usergrid.management.OrganizationConfig;
 import org.apache.usergrid.persistence.Entity;
 import org.apache.usergrid.persistence.EntityManager;
 import org.apache.usergrid.persistence.Query;
@@ -62,12 +36,7 @@ import org.apache.usergrid.rest.RootResource;
 import org.apache.usergrid.rest.applications.assets.AssetsResource;
 import org.apache.usergrid.rest.security.annotations.RequireApplicationAccess;
 import org.apache.usergrid.security.oauth.AccessInfo;
-import org.apache.usergrid.services.ServiceAction;
-import org.apache.usergrid.services.ServiceManager;
-import org.apache.usergrid.services.ServiceParameter;
-import org.apache.usergrid.services.ServicePayload;
-import org.apache.usergrid.services.ServiceRequest;
-import org.apache.usergrid.services.ServiceResults;
+import org.apache.usergrid.services.*;
 import org.apache.usergrid.services.assets.data.AssetUtils;
 import org.apache.usergrid.services.assets.data.AwsSdkS3BinaryStore;
 import org.apache.usergrid.services.assets.data.BinaryStore;
@@ -75,16 +44,18 @@ import org.apache.usergrid.services.assets.data.LocalFileBinaryStore;
 import org.apache.usergrid.services.exceptions.AwsPropertiesNotFoundException;
 import org.apache.usergrid.utils.InflectionUtils;
 import org.apache.usergrid.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.api.json.JSONWithPadding;
-import com.sun.jersey.multipart.BodyPart;
-import com.sun.jersey.multipart.BodyPartEntity;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.io.InputStream;
+import java.util.*;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-
 import static org.apache.usergrid.management.AccountCreationProps.PROPERTIES_USERGRID_BINARY_UPLOADER;
 
 
@@ -313,6 +284,7 @@ public class ServiceResource extends AbstractContextResource {
             returnInboundConnections, returnOutboundConnections );
         response.setServiceRequest( r );
         ServiceResults results = r.execute();
+        //logger.error("AAAAAAAAAAAAAAAAAAAAAAAA1:" + results.getTotalCount()+ " tid:"+ Thread.currentThread().getId());
         if ( results != null ) {
             if ( results.hasData() ) {
                 response.setData( results.getData() );
@@ -357,9 +329,8 @@ public class ServiceResource extends AbstractContextResource {
         response.setAction( "get" );
         response.setApplication( services.getApplication() );
         response.setParams( ui.getQueryParameters() );
-
+//Thread.currentThread().getId()
         executeServiceRequest( ui, response, ServiceAction.GET, null );
-
         return new JSONWithPadding( response, callback );
     }
 

@@ -231,7 +231,10 @@ public class AbstractCollectionService extends AbstractService {
             nextRequests = context.getNextServiceRequests( r.getRefs() );
         }
 
-        return new ServiceResults( this, context, Type.COLLECTION, r, null, nextRequests );
+        ServiceResults rs = new ServiceResults(this, context, Type.COLLECTION, r, null, nextRequests);
+        //logger.error("AAAAAAAAAAAAAAAAAAAAAAAA6:" + r.getTotalCount()+ " tid:"+ Thread.currentThread().getId());
+        rs.setTotalCount(r.getTotalCount());
+        return rs;
     }
 
 

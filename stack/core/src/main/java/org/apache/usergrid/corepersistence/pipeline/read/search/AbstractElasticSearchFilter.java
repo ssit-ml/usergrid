@@ -122,7 +122,10 @@ public abstract class AbstractElasticSearchFilter extends AbstractPathFilter<Id,
 
                             final FilterResult<Candidate>
                                 result = createFilterResult( candidate, currentOffSet, idFilterResult.getPath() );
-
+                            //qiongwei.cai 设置totalCount
+                            //log.error("AAAAAAAAAAAAAAAAAAAAAAAA4:" + candidateResults.getTotalCount()+ " tid:"+
+                            // Thread.currentThread().getId());
+                            result.setTotalCount(candidateResults.getTotalCount());
                             subscriber.onNext( result );
 
                             currentOffSet++;

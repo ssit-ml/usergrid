@@ -28,6 +28,16 @@ import com.google.common.base.Optional;
  * @param <T>
  */
 public class FilterResult<T> {
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
+
     private final T value;
     private final Optional<EdgePath> path;
 

@@ -43,6 +43,15 @@ import static org.apache.usergrid.utils.ConversionUtils.bytes;
 public class Results implements Iterable<Entity> {
     private static final IntegerSerializer INTEGER_SERIALIZER = IntegerSerializer.get();
 
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
 
     Level level = Level.IDS;
     UUID id;

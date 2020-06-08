@@ -661,6 +661,11 @@ public class EsEntityIndexImpl implements EntityIndex,VersionedData {
 
         }
 
+        //qiongwei.cai 设置totalCount
+        candidateResults.setTotalCount(searchHits.getTotalHits());
+        //logger.error("AAAAAAAAAAAAAAAAAAAAAAAA2:" + candidateResults.getTotalCount()+ " tid:"+ Thread.currentThread
+        // ().getId());
+
         return candidateResults;
     }
 

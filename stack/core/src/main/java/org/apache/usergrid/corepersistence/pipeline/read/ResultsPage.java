@@ -34,6 +34,16 @@ import org.apache.usergrid.persistence.model.entity.Entity;
  */
 public class ResultsPage<T> {
 
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
+
     private final List<T> entityList;
 
     private final int limit;
@@ -45,6 +55,13 @@ public class ResultsPage<T> {
         this.entityList = entityList;
         this.responseCursor = responseCursor;
         this.limit = limit;
+    }
+
+    public ResultsPage( final List<T> entityList, final ResponseCursor responseCursor, final int limit,final long totalCount ) {
+        this.entityList = entityList;
+        this.responseCursor = responseCursor;
+        this.limit = limit;
+        this.totalCount = totalCount;
     }
 
 

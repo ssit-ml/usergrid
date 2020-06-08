@@ -55,7 +55,10 @@ public class EntityResumeFilter extends AbstractPathFilter<Entity, Entity, Id>  
             final Entity entity = filterResult.getValue();
             final Id entityId = entity.getId();
 
-            return createFilterResult( entity, entityId, filterResult.getPath() );
+            //qiongwei.cai 设置totalCount (前置filter节点)
+            FilterResult<Entity> filterResult1 = createFilterResult(entity, entityId, filterResult.getPath());
+            filterResult1.setTotalCount(filterResult.getTotalCount());
+            return filterResult1;
         } );
     }
 

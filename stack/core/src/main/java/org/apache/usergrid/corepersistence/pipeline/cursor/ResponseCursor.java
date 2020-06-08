@@ -20,12 +20,11 @@
 package org.apache.usergrid.corepersistence.pipeline.cursor;
 
 
-import org.apache.usergrid.corepersistence.pipeline.read.EdgePath;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Optional;
+import org.apache.usergrid.corepersistence.pipeline.read.EdgePath;
 
 
 /**
@@ -33,6 +32,15 @@ import com.google.common.base.Optional;
  */
 public class ResponseCursor {
 
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
 
     private static final ObjectMapper MAPPER = CursorSerializerUtil.getMapper();
 
@@ -47,6 +55,12 @@ public class ResponseCursor {
 
 
     public ResponseCursor( final Optional<EdgePath> edgePath ) {this.edgePath = edgePath;}
+
+    public ResponseCursor(final Optional<EdgePath> edgePath, final long totalCount
+    ) {
+        this.edgePath = edgePath;
+        this.totalCount = totalCount;
+    }
 
 
     /**

@@ -64,10 +64,20 @@ import static org.apache.usergrid.utils.InflectionUtils.pluralize;
 
 @JsonPropertyOrder( {
         "action", "application", "params", "path", "query", "uri", "status", "error", "applications", "entity",
-        "entities", "list", "data", "next", "timestamp", "duration"
+        "entities", "list", "data", "next", "timestamp", "duration", "totalCount"
 } )
 @XmlRootElement
 public class ApiResponse {
+
+    private long totalCount;
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(long totalCount) {
+        this.totalCount = totalCount;
+    }
 
     private ServiceRequest esp;
 
@@ -406,6 +416,7 @@ public class ApiResponse {
             next = results.getNextResult();
             cursor = results.getCursor();
             counters = results.getCounters();
+            totalCount = results.getTotalCount();
         }
         else {
             entities = new ArrayList<Entity>();
